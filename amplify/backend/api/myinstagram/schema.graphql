@@ -1,0 +1,9 @@
+type User @model @auth(rules: [{ allow: owner }]) {
+  id: ID!
+  email: AWSEmail!
+  username: String!
+  bio: String
+  avatarUrl: String
+  tags: [String]
+  socialLinks: AWSJSON
+}
