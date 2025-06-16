@@ -1,8 +1,11 @@
 // src/components/EditProfile.jsx
 import React, { useEffect, useState } from 'react';
-import { API, Auth } from 'aws-amplify';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
+import { generateClient } from 'aws-amplify/api';
 import { createUser, updateUser } from '../graphql/mutations';
 import { getUser } from '../graphql/queries';
+
+const client = generateClient();
 
 function EditProfile() {
   const [formData, setFormData] = useState({
@@ -17,12 +20,16 @@ function EditProfile() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { attributes } = await Auth.currentAuthenticatedUser();
-      const userId = attributes.sub;
-      const email = attributes.email;
+      const { username: userId } = await getCurrentUser();
+      const {
+        tokens: {
+          idToken: { payload },
+        },
+      } = await fetchAuthSession();
+      const email = payload.email;
 
       try {
-        const { data } = await API.graphql({
+        const { data } = await client.graphql({
           query: getUser,
           variables: { id: userId },
         });
@@ -30,7 +37,6 @@ function EditProfile() {
         if (data.getUser) {
           setFormData({ ...data.getUser });
         } else {
-          // If user doesn't exist, store initial values
           setFormData((prev) => ({
             ...prev,
             id: userId,
@@ -62,11 +68,11 @@ function EditProfile() {
     try {
       if (formData.__typename) {
         // update existing user
-        await API.graphql({ query: updateUser, variables: { input } });
+        await client.graphql({ query: updateUser, variables: { input } });
         alert('Profile updated!');
       } else {
         // create new user
-        await API.graphql({ query: createUser, variables: { input } });
+        await client.graphql({ query: createUser, variables: { input } });
         alert('Profile created!');
       }
     } catch (err) {
