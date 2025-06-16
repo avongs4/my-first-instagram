@@ -1,19 +1,15 @@
 // src/App.js
-import React, { useEffect } from 'react';
+import React from 'react';
 import { withAuthenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
+import EditProfile from './components/EditProfile';
 
 function App({ signOut, user }) {
-  const email = user?.signInDetails?.loginId || user?.username;
-
-  useEffect(() => {
-    console.log('Current User:', user);
-  }, [user]);
-
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>Welcome, {email}!</h2>
+    <div>
+      <h2>Welcome, {user.attributes.email}!</h2>
       <button onClick={signOut}>Sign Out</button>
+      <EditProfile />
     </div>
   );
 }
